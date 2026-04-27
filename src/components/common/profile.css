@@ -1,0 +1,8 @@
+.profile{
+    height: 100%;
+    width: 100%;
+    border-radius: 50%;
+    background-image: url(../../resources/user.png);
+    background-size: contain;
+
+}

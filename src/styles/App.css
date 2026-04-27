@@ -1,0 +1,21 @@
+.App {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	text-align: center;
+}
+
+.home-body{
+	position: relative;
+	top: 60px;
+	display: flex;
+	justify-content: center;
+}
+
+button{
+	outline: none;
+}
+
+a{
+	text-decoration: none;
+}

@@ -1,0 +1,51 @@
+.onion-box{
+    position: relative;
+    height: auto;
+    min-height: 20px;
+    max-width: 400px;
+    border: 1px solid rgb(146, 141, 141);
+    border-radius: 10px;
+    margin-top: 10px;
+    padding: 3px;
+    padding-left: 15px;
+    font-size: 1.1rem;
+    display: flex;
+    align-content: center;
+    text-align: center;
+}
+
+.color-box{
+    position : absolute;
+    top : 0;
+    left : 0;
+    background-color: #72f8965b;
+    height : 100% ;
+    /* width : 10px ;  */
+    border-bottom-left-radius : 7px ;
+    border-top-left-radius : 7px;
+    transition: width 1s;
+}
+
+.onion-box p{
+    position: relative;
+    top: 0;
+    margin: 0;
+    align-self: center;
+}
+
+.onion-box p.display-percent{
+    margin-left: auto !important;
+    margin-right: 2%;
+    font-size: 0.9rem;
+    color: #9e9e9e;
+}
+
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Old versions of Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome, Edge, Opera and Firefox */
+  }

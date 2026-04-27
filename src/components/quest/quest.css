@@ -1,0 +1,214 @@
+.quest-box{
+    background-color: white;
+    position: relative;
+    box-sizing: border-box;
+    text-align: start;
+    padding: 8px;
+    color: rgb(82, 81, 81);
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 5px 0 #00000085;
+}
+
+h3{
+    margin: 0;
+}
+
+.comment-link{
+    margin-top: 3px;
+    margin-bottom: 6px;
+    cursor: pointer;
+}
+
+.add-comment{
+    margin-left: auto;
+    cursor: pointer;
+}
+
+.up-down{
+    position: relative;
+    margin-top: 2%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.up-down p{
+    margin: 0;
+    margin-left: 2%;
+    margin-right: 2%;
+}
+
+.share-box{
+    background-color: white;
+    padding: 10px;
+    width: 80%;
+    box-sizing: content-box;
+}
+.share-drop{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    width: -moz-fit-content;
+    border: 2px solid grey;
+    background-color: rgba(126, 126, 126, 0.445);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 60;
+}
+
+.text-area-share-box{
+    width: 100%;
+    resize: none;
+    box-sizing: border-box;
+    padding-right: 40px;
+}
+
+button.share-copy-button{
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+}
+
+.view-answer{
+    margin-left: 10%;
+    cursor: pointer;
+}
+
+
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+        -khtml-user-select: none; /* Konqueror HTML */
+            -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome, Edge, Opera and Firefox */
+    -webkit-tap-highlight-color: transparent;
+}
+
+.nodisplay{
+    display: none !important;
+}
+
+.profile-box{
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 5px;
+}
+
+.profile-box p{
+    font-size: 1rem;
+    margin-left: 6px;
+    margin-top: 0;
+    margin-bottom: 0;
+    color: rgb(68, 68, 68);
+    font-weight: bold;
+}
+
+.profile-box .date{
+    margin-bottom: 0;
+    font-size: .8rem;
+    color: darkgrey;
+    font-weight: 500;
+}
+
+.svg-icons{
+    width: 22px;
+    height: 22px;
+}
+
+.icon-svg{
+    stroke: #666;
+    stroke-width: 1.5;
+    fill: none;
+    fill-rule: evenodd;
+    stroke-linejoin: round;
+}
+
+button svg .share-button-path{
+    stroke: #065fd4;
+    stroke-width: 3;
+    fill: #065fd4;
+    fill-rule: evenodd;
+    stroke-linejoin: round;
+}
+
+svg{
+    cursor: pointer;
+}
+
+.upvoted{
+    stroke: #0962ffba !important;
+    fill: #0962ffba !important;
+}
+
+.downvoted{
+    stroke: #d60707ba !important;
+    fill : #d60707ba !important;
+}
+
+.setting-answer{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.856);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.onion-image{
+    height: 32px;
+    width: 32px;
+    background-image: url('../../resources/onion.png');
+    background-size: contain;
+    margin-right: 10px;
+}
+
+.hidden{
+    display: none !important;
+}
+
+.book-mark{
+    position: absolute;
+    right: 0;
+}
+
+.remove{
+    margin-bottom: 5px;
+    color: #12426d;
+    width: fit-content;
+    align-self: center;
+    cursor: pointer;
+}
+
+.quest-tags{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+    margin-bottom: 4px;
+}
+
+.quest-tag{
+    background-color: #eef2f7;
+    color: #3a5274;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    line-height: 1.4;
+}

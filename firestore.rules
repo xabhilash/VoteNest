@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Public profile (name, photo) written on signup
+    match /Users/{uid} {
+      allow read: if true;
+      allow create, update: if isOwner(uid);
+      allow delete: if false;
+    }
+
+    // Questions feed
+    match /Quest/{questId} {
+      allow read: if true;
+      allow create: if isSignedIn()
+                    && request.resource.data.user.userId in [request.auth.uid, 'Anon'];
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn()
+                    && resource.data.user.userId == request.auth.uid;
+
+      // Per-question answer tallies
+      match /quest_data/{docId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+      }
+
+      // Comments under a question
+      match /Comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow update: if isSignedIn();
+        allow delete: if isSignedIn()
+                      && resource.data.user.userId == request.auth.uid;
+
+        // Replies under a comment
+        match /Replies/{replyId} {
+          allow read: if true;
+          allow create: if isSignedIn();
+          allow update: if isSignedIn();
+          allow delete: if isSignedIn()
+                        && resource.data.user.userId == request.auth.uid;
+        }
+      }
+    }
+
+    // Up/down vote tallies for quests, comments, replies
+    match /Quest_data/{id}/{sub}/{voteDoc} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Per-user private data (bookmarks, your posted quests, your votes)
+    match /Users_pvt_data/{uid} {
+      allow read, write: if isOwner(uid);
+
+      match /{subcol}/{docId} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+
+    // Anything else: locked
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
