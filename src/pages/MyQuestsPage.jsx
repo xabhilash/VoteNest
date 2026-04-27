@@ -17,24 +17,19 @@ function MyQuestsPage() {
     if (!ready) return;
     if (!isSignedIn || !user) return;
 
-    db.collection('Users_pvt_data').doc(user.uid)
-      .collection('Quest').doc(`Quest_${user.uid}`)
+    db.collection('Users').doc(user.uid)
+      .collection('myQuests')
       .get()
       .then((snap) => {
-        const data = snap.data();
-        if (typeof data === 'undefined') {
-          setDataReceived(true);
-          return;
-        }
-        const keys = Object.keys(data.quest);
-        if (keys.length === 0) {
+        if (snap.empty) {
           setDataReceived(true);
           return;
         }
         let collected = [];
-        keys.forEach((key) => {
-          db.collection('Quest').doc(key).get()
+        snap.docs.forEach((doc) => {
+          db.collection('Quest').doc(doc.id).get()
             .then((snapDoc) => {
+              if (!snapDoc.exists) return;
               collected = collected.concat({ ...snapDoc.data(), questId: snapDoc.id });
               setQuest(collected);
               setDataReceived(true);
@@ -44,11 +39,12 @@ function MyQuestsPage() {
       });
 
     const unsubscribe = db
-      .collection('Users_pvt_data').doc(user.uid)
-      .collection('Quest_bookmark').doc(`bookmark_${user.uid}`)
+      .collection('Users').doc(user.uid)
+      .collection('bookmarks')
       .onSnapshot((snap) => {
-        const data = snap.data();
-        if (typeof data !== 'undefined') setBookmarks(data.quest);
+        const map = {};
+        snap.docs.forEach((doc) => { map[doc.id] = true; });
+        setBookmarks(map);
       });
     return () => unsubscribe();
   }, [db, isSignedIn, user, ready]);

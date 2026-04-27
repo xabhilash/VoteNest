@@ -1,27 +1,24 @@
 import { firebase } from '../lib/firebase';
 
+// Bookmarks live as one doc per quest under the user's profile:
+//   /Users/{uid}/bookmarks/{questId} = { ts: Timestamp }
+// This avoids the 1MB cap of a single growing map field and lets rules
+// scope bookmarks to the owning user.
 export function setBookmarkToggle(ctx, userId, questId, bookmarked) {
-  console.log('setbbo');
   if (userId == null) {
-    console.log('sigin to bookmark');
+    console.log('sign in to bookmark');
     return;
   }
 
   const ref = ctx.db
-    .collection('Users_pvt_data').doc(userId)
-    .collection('Quest_bookmark').doc(`bookmark_${userId}`);
+    .collection('Users').doc(userId)
+    .collection('bookmarks').doc(questId);
 
   if (!bookmarked) {
-    ref.set({
-      quest: { [questId]: firebase.firestore.Timestamp.now() },
-    }, { merge: true })
-      .then(() => console.log('success in bookmark'))
-      .catch((er) => console.log('error in bookmark' + er));
+    ref.set({ ts: firebase.firestore.Timestamp.now() })
+      .catch((er) => console.log('error in bookmark ' + er));
   } else {
-    ref.set({
-      quest: { [questId]: firebase.firestore.FieldValue.delete() },
-    }, { merge: true })
-      .then(() => console.log('success in removing bookmark'))
-      .catch((er) => console.log('error in bookmark' + er));
+    ref.delete()
+      .catch((er) => console.log('error in removing bookmark ' + er));
   }
 }

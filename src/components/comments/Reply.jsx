@@ -8,64 +8,138 @@ import './reply.css';
 function Reply({ data, questId, commentId, signed }) {
   const ctx = useFirebase();
   const { user } = useAuth();
-  const [upVotes, setUpVotes] = useState(0);
-  const [downVotes, setDownVotes] = useState(0);
   const [upVoted, setUpVoted] = useState(false);
   const [downVoted, setDownVoted] = useState(false);
+  const [voteBusy, setVoteBusy] = useState(false);
+  // Local mirror of the vote counts so the UI can update optimistically on
+  // click. The parent listener (in Replies.jsx) refreshes data via props,
+  // which we sync into local state below.
+  const [counts, setCounts] = useState({
+    totalUpVotes: data.totalUpVotes ?? 0,
+    totalDownVotes: data.totalDownVotes ?? 0,
+  });
+
+  const upVotes = counts.totalUpVotes;
+  const downVotes = counts.totalDownVotes;
+
+  const replyRef = ctx.db
+    .collection('Quest').doc(questId)
+    .collection('Comments').doc(commentId)
+    .collection('Replies').doc(data.replyId);
 
   useEffect(() => {
-    const unsubscribeUp = ctx.db
-      .collection('Quest_data').doc(data.replyId)
-      .collection('upVotes').doc(`upVote_${data.replyId}`)
-      .onSnapshot((snap) => {
-        const raw = snap.data();
-        if (typeof raw !== 'undefined') {
-          const userMap = raw.user;
-          const lenData = typeof userMap !== 'undefined' ? Object.getOwnPropertyNames(userMap).length : 0;
-          if (signed) {
-            const uid = ctx.auth.currentUser.uid;
-            if (lenData !== 0 && Object.prototype.hasOwnProperty.call(userMap, uid)) {
-              setUpVoted(true);
-              setDownVoted(false);
-            }
-          }
-          setUpVotes(lenData);
-        }
-      });
+    setCounts({
+      totalUpVotes: data.totalUpVotes ?? 0,
+      totalDownVotes: data.totalDownVotes ?? 0,
+    });
+  }, [data.totalUpVotes, data.totalDownVotes]);
 
-    const unsubscribeDown = ctx.db
-      .collection('Quest_data').doc(data.replyId)
-      .collection('downVotes').doc(`downVote_${data.replyId}`)
-      .onSnapshot((snap) => {
-        const raw = snap.data();
-        if (typeof raw !== 'undefined') {
-          const userMap = raw.user;
-          const lenData = typeof userMap !== 'undefined' ? Object.getOwnPropertyNames(userMap).length : 0;
-          if (signed) {
-            const uid = ctx.auth.currentUser.uid;
-            if (lenData !== 0 && Object.prototype.hasOwnProperty.call(userMap, uid)) {
-              setUpVoted(false);
-              setDownVoted(true);
-            }
-          }
-          setDownVotes(lenData);
-        }
-      });
-
+  useEffect(() => {
+    if (!signed) {
+      setUpVoted(false);
+      setDownVoted(false);
+      return undefined;
+    }
+    const uid = ctx.auth.currentUser.uid;
+    const unsubscribeUp = replyRef.collection('upVotes').doc(uid)
+      .onSnapshot((snap) => setUpVoted(snap.exists));
+    const unsubscribeDown = replyRef.collection('downVotes').doc(uid)
+      .onSnapshot((snap) => setDownVoted(snap.exists));
     return () => {
       unsubscribeDown();
       unsubscribeUp();
     };
-  }, [ctx, data.replyId, signed]);
+  }, [ctx, data.replyId, questId, commentId, signed]);
+
+  const handleUpVoteClick = () => {
+    if (!signed) {
+      upVote(ctx, replyRef, null);
+      return;
+    }
+    if (voteBusy) return;
+
+    const prevUp = upVoted;
+    const prevDown = downVoted;
+    const prevCounts = counts;
+
+    let deltaUp = 0;
+    let deltaDown = 0;
+    let nextUp;
+    let nextDown;
+    if (prevUp) {
+      nextUp = false;
+      nextDown = prevDown;
+      deltaUp = -1;
+    } else {
+      nextUp = true;
+      nextDown = false;
+      deltaUp = 1;
+      if (prevDown) deltaDown = -1;
+    }
+
+    setUpVoted(nextUp);
+    setDownVoted(nextDown);
+    setCounts((c) => ({
+      totalUpVotes: c.totalUpVotes + deltaUp,
+      totalDownVotes: c.totalDownVotes + deltaDown,
+    }));
+    setVoteBusy(true);
+
+    Promise.resolve(upVote(ctx, replyRef, ctx.auth.currentUser.uid))
+      .catch(() => {
+        setUpVoted(prevUp);
+        setDownVoted(prevDown);
+        setCounts(prevCounts);
+      })
+      .finally(() => setVoteBusy(false));
+  };
+
+  const handleDownVoteClick = () => {
+    if (!signed) {
+      downVote(ctx, replyRef, null);
+      return;
+    }
+    if (voteBusy) return;
+
+    const prevUp = upVoted;
+    const prevDown = downVoted;
+    const prevCounts = counts;
+
+    let deltaUp = 0;
+    let deltaDown = 0;
+    let nextUp;
+    let nextDown;
+    if (prevDown) {
+      nextDown = false;
+      nextUp = prevUp;
+      deltaDown = -1;
+    } else {
+      nextDown = true;
+      nextUp = false;
+      deltaDown = 1;
+      if (prevUp) deltaUp = -1;
+    }
+
+    setUpVoted(nextUp);
+    setDownVoted(nextDown);
+    setCounts((c) => ({
+      totalUpVotes: c.totalUpVotes + deltaUp,
+      totalDownVotes: c.totalDownVotes + deltaDown,
+    }));
+    setVoteBusy(true);
+
+    Promise.resolve(downVote(ctx, replyRef, ctx.auth.currentUser.uid))
+      .catch(() => {
+        setUpVoted(prevUp);
+        setDownVoted(prevDown);
+        setCounts(prevCounts);
+      })
+      .finally(() => setVoteBusy(false));
+  };
 
   const deleteReply = () => {
     const batch = ctx.db.batch();
-    const ref = ctx.db
-      .collection('Quest').doc(questId)
-      .collection('Comments').doc(commentId)
-      .collection('Replies').doc(data.replyId);
-
-    batch.delete(ref);
+    batch.delete(replyRef);
     const incRef = ctx.db
       .collection('Quest').doc(questId)
       .collection('Comments').doc(commentId);
@@ -100,17 +174,17 @@ function Reply({ data, questId, commentId, signed }) {
       <div className="up-down-reply noselect">
         <svg
           width="18px" height="18px"
-          onClick={() => upVote(ctx, 'Reply', signed ? ctx.auth.currentUser.uid : null, data.replyId)}
+          onClick={handleUpVoteClick}
           viewBox="0 0 24 24"
         >
           <g id="upvote" className={'icon-svg' + (signed && upVoted ? ' upvoted' : '')}>
             <polygon points="12 4 3 15 9 15 9 20 15 20 15 15 21 15"></polygon>
           </g>
         </svg>
-        <p>{upVotes - downVotes}</p>
+        <p>{upVotes === 0 && downVotes === 0 ? '' : upVotes - downVotes}</p>
         <svg
           width="18px" height="18px"
-          onClick={() => downVote(ctx, 'Reply', signed ? ctx.auth.currentUser.uid : null, data.replyId)}
+          onClick={handleDownVoteClick}
           viewBox="0 0 24 24"
         >
           <g id="downvote" className={'icon-svg' + (signed && downVoted ? ' downvoted' : '')}>
