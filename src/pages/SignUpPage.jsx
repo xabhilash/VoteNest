@@ -26,6 +26,7 @@ function SignUpPage() {
         <h1>VoteNest</h1>
         <p>A place to share your onion on some weird stuff</p>
         <FirebaseAuthUI uiConfig={uiConfig} firebaseAuth={auth} />
+        <p className='tag'>Mady by Abhilash</p>
       </div>
     </div>
   );
