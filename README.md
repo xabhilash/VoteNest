@@ -1,6 +1,6 @@
 # VoteNest
 
-A public polling website where users can ask questions, share opinions ("onions"), and bookmark interesting polls.
+A public polling website where users can ask questions, share opinions, and bookmark interesting polls.
 
 ## Tech Stack
 
