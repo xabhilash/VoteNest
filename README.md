@@ -1,7 +1,5 @@
 # VoteNest
 
-Link to the original [website](https://inmyonion.web.app/).
-
 A public polling website where users can ask questions, share opinions ("onions"), and bookmark interesting polls.
 
 ## Tech Stack
