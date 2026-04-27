@@ -9,51 +9,29 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
-    // Public profile + per-user private subcollections (bookmarks, myQuests).
+    // Public profile (name, photo) written on signup
     match /Users/{uid} {
       allow read: if true;
       allow create, update: if isOwner(uid);
       allow delete: if false;
-
-      match /bookmarks/{questId} {
-        allow read, write: if isOwner(uid);
-      }
-
-      match /myQuests/{questId} {
-        allow read, write: if isOwner(uid);
-      }
     }
 
-    // Public question feed.
+    // Questions feed
     match /Quest/{questId} {
       allow read: if true;
       allow create: if isSignedIn()
                     && request.resource.data.user.userId in [request.auth.uid, 'Anon'];
-      // Counters (totalAnswers, totalComments, totalUpVotes, totalDownVotes)
-      // are bumped by other signed-in users when they vote / comment / answer.
       allow update: if isSignedIn();
       allow delete: if isSignedIn()
                     && resource.data.user.userId == request.auth.uid;
 
-      // Shared answer tally for the poll.
-      match /answers/{docId} {
+      // Per-question answer tallies
+      match /quest_data/{docId} {
         allow read: if true;
         allow write: if isSignedIn();
       }
 
-      // One doc per voter on the question itself.
-      match /upVotes/{uid} {
-        allow read: if true;
-        allow create, delete: if isOwner(uid);
-        allow update: if false;
-      }
-      match /downVotes/{uid} {
-        allow read: if true;
-        allow create, delete: if isOwner(uid);
-        allow update: if false;
-      }
-
-      // Comments under a question.
+      // Comments under a question
       match /Comments/{commentId} {
         allow read: if true;
         allow create: if isSignedIn();
@@ -61,40 +39,33 @@ service cloud.firestore {
         allow delete: if isSignedIn()
                       && resource.data.user.userId == request.auth.uid;
 
-        match /upVotes/{uid} {
-          allow read: if true;
-          allow create, delete: if isOwner(uid);
-          allow update: if false;
-        }
-        match /downVotes/{uid} {
-          allow read: if true;
-          allow create, delete: if isOwner(uid);
-          allow update: if false;
-        }
-
-        // Replies under a comment.
+        // Replies under a comment
         match /Replies/{replyId} {
           allow read: if true;
           allow create: if isSignedIn();
           allow update: if isSignedIn();
           allow delete: if isSignedIn()
                         && resource.data.user.userId == request.auth.uid;
-
-          match /upVotes/{uid} {
-            allow read: if true;
-            allow create, delete: if isOwner(uid);
-            allow update: if false;
-          }
-          match /downVotes/{uid} {
-            allow read: if true;
-            allow create, delete: if isOwner(uid);
-            allow update: if false;
-          }
         }
       }
     }
 
-    // Anything else: locked.
+    // Up/down vote tallies for quests, comments, replies
+    match /Quest_data/{id}/{sub}/{voteDoc} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Per-user private data (bookmarks, your posted quests, your votes)
+    match /Users_pvt_data/{uid} {
+      allow read, write: if isOwner(uid);
+
+      match /{subcol}/{docId} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+
+    // Anything else: locked
     match /{document=**} {
       allow read, write: if false;
     }

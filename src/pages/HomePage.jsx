@@ -101,12 +101,11 @@ function HomePage({ url = null }) {
   useEffect(() => {
     if (!isSignedIn || !user) return;
     const unsubscribe = db
-      .collection('Users').doc(user.uid)
-      .collection('bookmarks')
+      .collection('Users_pvt_data').doc(user.uid)
+      .collection('Quest_bookmark').doc(`bookmark_${user.uid}`)
       .onSnapshot((snap) => {
-        const map = {};
-        snap.docs.forEach((doc) => { map[doc.id] = true; });
-        setBookmarks(map);
+        const data = snap.data();
+        if (typeof data !== 'undefined') setBookmarks(data.quest);
       });
     return () => unsubscribe();
   }, [db, isSignedIn, user]);

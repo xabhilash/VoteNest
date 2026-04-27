@@ -85,24 +85,22 @@ function AddQuest() {
       .add({
         ...quest,
         totalAnswers: 0,
-        totalComments: 0,
-        totalUpVotes: 0,
-        totalDownVotes: 0,
         timeStamp: firebase.firestore.Timestamp.now(),
         user: {
           userId: quest.isAnonymous ? 'Anon' : user.uid,
           userName: quest.isAnonymous ? 'Anon' : user.displayName,
           userProfilePicUrl: quest.isAnonymous ? 'Anon' : user.photoURL,
         },
+        totalComments: 0,
       })
       .then((snap) => {
         const batch = db.batch();
         const ansref = db
           .collection('Quest').doc(snap.id)
-          .collection('answers').doc('default');
-        const myQuestRef = db
-          .collection('Users').doc(user.uid)
-          .collection('myQuests').doc(snap.id);
+          .collection('quest_data').doc('ans' + snap.id);
+        const userpvtref = db
+          .collection('Users_pvt_data').doc(user.uid)
+          .collection('Quest').doc(`Quest_${user.uid}`);
 
         batch.set(ansref, {
           totalAnswers: 0,
@@ -113,7 +111,11 @@ function AddQuest() {
           users: {},
         });
 
-        batch.set(myQuestRef, { ts: firebase.firestore.Timestamp.now() });
+        batch.set(
+          userpvtref,
+          { quest: { [snap.id]: firebase.firestore.Timestamp.now() } },
+          { merge: true }
+        );
 
         batch.commit()
           .then(() => {
